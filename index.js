@@ -9,7 +9,7 @@ app.use(cors());
 app.use(express.json());
 
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.87bzbwh.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -26,6 +26,8 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
 
     const usersCollection = client.db('aircncDb').collection('users')
+    const roomsCollection = client.db('aircncDb').collection('rooms')
+    const bookingsCollection = client.db('aircncDb').collection('bookings')
     
     // Save user email and role in DB
     app.put('/users/:email', async (req, res) => {
@@ -39,6 +41,29 @@ async function run() {
         const result = await usersCollection.updateOne(query, updateDoc, options)
         console.log(result)
         res.send(result)
+    })
+
+    // Get all rooms
+    app.get('/rooms', async (req, res) =>{
+      const result = await roomsCollection.find().toArray()
+      res.send(result)
+    })
+
+    // Get a single room
+    app.get('/room/:id', async (req, res) =>{
+      const id = req.params.id
+      const query = {_id: new ObjectId(id)}
+      const result = await roomsCollection.findOne(query)
+      console.log(result)
+      res.send(result)
+    })
+
+    // Save a room in database
+    app.post('/rooms', async (req, res) =>{
+      const room = req.body
+      console.log(room)
+      const result = await roomsCollection.insertOne(room)
+      res.send(result)
     })
     await client.connect();
     // Send a ping to confirm a successful connection
